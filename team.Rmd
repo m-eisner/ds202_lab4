@@ -1,0 +1,55 @@
+---
+title: "team"
+author: "Matthew Eisner"
+date: "10/6/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r}
+library(readxl)
+defense <- read_excel('./cyclonesFootball2019.xlsx', sheet='Defensive')
+offense <- read_excel('./cyclonesFootball2019.xlsx', sheet='Offensive')
+bio <- read_excel('./cyclonesFootball2019.xlsx', sheet='Biography')
+str(defense)
+```
+
+## Part one: Cleaning data
+
+Although the three Excel sheets are loaded into R, they are not useful before some cleaning. Manipulate the three imported data frames, so that in the cleaned dataset:
+
+1. The player names and opponent names are factors.
+
+2. All offensive and defensive statistics are numerical. The Weight column in biogrpahy is also numeric. (Optional: Learn to mutate multiple columns systematically using the `?across` function in `dplyr)
+
+3. Change the `Height` column in biogrpahy into numeric. (Hint: Use a unit that works well)
+
+By cleaning the three data frames in R, at the end of this step you should have the following three clean data frames: `defClean`, `offClean`, and `bioClean`. Print the structures of these data frames.
+
+## Part two: Tidying
+
+For the following questions, work on the cleaned data frames `defClean`, `offClean`, and `bioClean`.
+
+1. Reformat the `defClean` data frame into a tidy format using `pivot_longer`. The type of statistic (Tackles_Solo, Tackles_ASST, etc) is added as a new key column named `stat`.
+
+2. Compare the distributions of the defensive statistics. What defensive skills are rare?
+
+3. Did ISU have better defense against Iowa or Notre Dame? Answer this question by creating a scatterplot with x- and y-axes being the number of solo tackles (of each player). A large number of solo tackles is an indicator of good defense.
+
+Now turn our attention to the player biography.
+
+4. Separate the `Hometown` column into two columns, namely the city and the state. Print the first few rows of these two columns. (Hint: look at the `sep=` argument of `separate`)
+
+5. How many players are there from each state?
+
+## Part three: Joining data frames
+
+1. Find from which states do the ISU players come. Create an appropriate summary.
+
+2. How does the performance of quarterback Brock Purdy relate to the performance of the ISU team?
+
+3. Which ISU player(s) made big progress over the last year? Compare the 2019 and the 2018 data here.
