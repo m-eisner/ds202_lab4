@@ -72,23 +72,60 @@ For the following questions, work on the cleaned data frames `defClean`, `offCle
 1. Reformat the `defClean` data frame into a tidy format using `pivot_longer`. The type of statistic (Tackles_Solo, Tackles_ASST, etc) is added as a new key column named `stat`.
 
 ```{r}
-
+defClean <- defClean %>% pivot_longer(Tackles_Solo:Pass_PB, names_to='stat', values_to='count')
+defClean
 ```
 
 2. Compare the distributions of the defensive statistics. What defensive skills are rare?
 
+```{r}
+defClean %>% ggplot(aes(x=count)) + geom_histogram() + facet_wrap(~stat)
+```
+
 3. Did ISU have better defense against Iowa or Notre Dame? Answer this question by creating a scatterplot with x- and y-axes being the number of solo tackles (of each player). A large number of solo tackles is an indicator of good defense.
+
+```{r}
+dat <- defClean %>% 
+  filter(stat=='Tackles_Solo' & Opponent_Opponent %in% c('Notre Dame', 'Iowa')) %>%
+  pivot_wider(names_from = Opponent_Opponent, values_from = count)
+
+dat %>% ggplot(aes(x=Iowa, y=`Notre Dame`)) + geom_point()
+```
 
 Now turn our attention to the player biography.
 
 4. Separate the `Hometown` column into two columns, namely the city and the state. Print the first few rows of these two columns. (Hint: look at the `sep=` argument of `separate`)
 
+```{r}
+bioClean <- bioClean %>% separate(Hometown, c('City', 'State'), sep=', ')
+head(bioClean)
+```
+
 5. How many players are there from each state?
+
+```{r}
+bioClean %>%
+  group_by(State) %>%
+  summarize(count=n())
+```
 
 ## Part three: Joining data frames
 
-1. Find from which states do the ISU players come. Create an appropriate summary.
+1. Find which states do the ISU defensive and offensive players come from. Create an appropriate summary.
+
+```{r}
+
+```
 
 2. How does the performance of quarterback Brock Purdy relate to the performance of the ISU team?
 
+```{r}
+
+```
+
 3. Which ISU player(s) made big progress over the last year? Compare the 2019 and the 2018 data here.
+
+```{r}
+
+```
+
