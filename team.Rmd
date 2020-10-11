@@ -106,7 +106,7 @@ head(bioClean)
 ```{r}
 bioClean %>%
   group_by(State) %>%
-  summarize(count=n())
+  summarize(Number.of.Players=n())
 ```
 
 ## Part three: Joining data frames
@@ -114,18 +114,82 @@ bioClean %>%
 1. Find which states do the ISU defensive and offensive players come from. Create an appropriate summary.
 
 ```{r}
+offClean %>% 
+  left_join(bioClean, by='Name') %>%
+  group_by(Name, State) %>%
+  summarize()
 
+defClean %>% 
+  left_join(bioClean, by='Name') %>%
+  group_by(Name, State) %>%
+  summarize()
 ```
 
 2. How does the performance of quarterback Brock Purdy relate to the performance of the ISU team?
 
-```{r}
+```{r fig.width=7, fig.height=10}
+fantasy <- offClean %>%
+  mutate_if(is.numeric, ~replace(., is.na(.), 0)) %>%
+  mutate(fantasy_points = Rushing_YDS*0.1 + Rushing_TD*6 + 
+           Receiving_REC + Receiving_YDS*0.1 + Receiving_TD*6 + 
+           Passing_YDS*0.04 + Passing_TD*4 - Passing_INT*2)
 
+fantasy %>%  
+  group_by(Name, Opponent_Opponent, fantasy_points) %>%
+  summarize()
+
+fantasy %>% 
+  filter(Opponent_Opponent %in% c('ULM','Notre Dame', 'Texas', 'Oklahoma State')) %>%
+  filter(Name %in% c('Purdy, Brock', "Pettway, La'Michael", 'Hall, Breece', 'Kolar, Charlie', 'Jones, Deshaunte',
+                     'Milton, Tarique', 'Allen, Chase')) %>%
+  ggplot(aes(x=Name, weight=fantasy_points, fill=Opponent_Opponent)) + 
+  geom_bar() +
+  scale_y_continuous(expand = c(0, 0.1)) +
+  coord_flip() +
+  facet_grid(rows = vars(Opponent_Opponent), scales = "free_y", switch = "y", space = "free_y") +
+  labs(
+    title = "Fantasy Football points for ISU",
+    subtitle = "2019 Football Season",
+    y = "Fantasy Points") +
+  theme_minimal(base_family = "Roboto Condensed") +
+  theme(
+    plot.margin = margin(0.5, 0.5, 0.5, 0.5, unit = "cm"),
+    plot.title = element_text(size = 15, face = "bold"),
+    strip.text.y = element_text(angle = 270, face = "bold"),
+    strip.placement = "outside",
+    axis.title.x = element_text(margin = margin(t = 0.5, b = 0.5, unit = "cm")),
+    axis.title.y = element_blank(),
+    axis.text = element_text(size = 10),
+    legend.position = "none",
+    panel.grid.major.y = element_blank())
 ```
 
 3. Which ISU player(s) made big progress over the last year? Compare the 2019 and the 2018 data here.
 
 ```{r}
+defense2018 <- read_excel('./cyclonesFootball2018.xlsx', sheet='Defensive')
+offense2018 <- read_excel('./cyclonesFootball2018.xlsx', sheet='Offensive')
 
+offense2018$Name <- as.factor(offense2018$Name)
+offense2018$Opponent_Opponent <- as.factor(offense2018$Opponent_Opponent)
+defense2018$Name <- as.factor(defense2018$Name)
+defense2018$Opponent_Opponent <- as.factor(defense2018$Opponent_Opponent)
+offense2018 <- offense2018 %>% mutate(across(where(is.character), as.numeric))
+defense2018 <- defense2018 %>% mutate(across(where(is.character), as.numeric))
+
+fantasy2018 <- offense2018 %>%
+  mutate_if(is.numeric, ~replace(., is.na(.), 0)) %>%
+  mutate(fantasy_points_2018 = Rushing_YDS*0.1 + Rushing_TD*6 + 
+           Receiving_REC + Receiving_YDS*0.1 + Receiving_TD*6 + 
+           Passing_YDS*0.04 + Passing_TD*4 - Passing_INT*2)
+
+fantasy %>% 
+  select(-Rushing_YDS, -Rushing_TD, -Receiving_REC, -Receiving_YDS, 
+         -Receiving_TD, -Passing_YDS, -Passing_TD, -Passing_INT, 
+         -Rushing_ATT, -`Passing_CMP-ATT`) %>%
+  inner_join(fantasy2018 %>% select(Name, Opponent_Opponent, fantasy_points_2018), 
+             by=c('Name', 'Opponent_Opponent')) %>%
+  group_by(Name) %>%
+  summarize(mean.points.2018=mean(fantasy_points_2018), mean.points.2019=mean(fantasy_points))
 ```
 
