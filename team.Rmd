@@ -1,7 +1,7 @@
 ---
 title: "team"
 author: "Matthew Eisner"
-date: "10/6/2020"
+date: "10/11/2020"
 output: html_document
 ---
 
@@ -78,6 +78,8 @@ defClean
 
 2. Compare the distributions of the defensive statistics. What defensive skills are rare?
 
+The following defensive skills are rare: Turnover_INT, Turnover_FR, Turnover_FF, Tackles_Sack, Tackles_TFL, Pass_PB, and Pass_QBH. These skills often do not happen in a game but if they do, usually only once.
+
 ```{r}
 defClean %>% ggplot(aes(x=count)) + geom_histogram() + facet_wrap(~stat)
 ```
@@ -89,7 +91,7 @@ dat <- defClean %>%
   filter(stat=='Tackles_Solo' & Opponent_Opponent %in% c('Notre Dame', 'Iowa')) %>%
   pivot_wider(names_from = Opponent_Opponent, values_from = count)
 
-dat %>% ggplot(aes(x=Iowa, y=`Notre Dame`)) + geom_point()
+dat %>% ggplot(aes(x=Iowa, y=`Notre Dame`)) + geom_point() #+ geom_smooth(method = "lm", se=FALSE)
 ```
 
 Now turn our attention to the player biography.
@@ -127,16 +129,16 @@ defClean %>%
 
 2. How does the performance of quarterback Brock Purdy relate to the performance of the ISU team?
 
+To answer this question, I calculated the "fantasy score" for each player, each game. This was done using standard weightings of a typical PPR (point per reception) NFL fantasy league. In short, the higher the fantasy point value for a player, the better they performed in the football game. I chose to compare these fantasy scores from four games over the 2019 season, one where Brock Purdy did poorly, one where Brock Purdy did very well, and two in-between games for Brock Purdy. For readability, I chose to analyze Brock Purdy, Breece Hall, and the top five receivers on the depth chart from 2019 (wide receivers and tight ends will be together considered as 'receivers')
+
+In the Notre Dame and Oklahoma State games where Purdy did not do very well with less than 20 points, Breece Hall was the highest scoring player on the offense. In the Texas game, Purdy had a fair showing with just above 20 points and Breece Hall did not do as well, scoring the fifth highest of selected players. In Purdy's best game, against ULM, he scored over 50 points with large showings from his top receivers as well. Breece Hall scored much less than most other players on offense this game. From this, we learn that the better Brock Purdy does, the better his recievers do. The worse Brock Purdy does, the worse his recievers eperform but the better Breece Hall does. This makes sense because if the passing game is very successful, the team will continue to pass. However, if Brock Purdy is not passing well, the running game with Breece Hall is going to be utilized more.
+
 ```{r fig.width=7, fig.height=10}
 fantasy <- offClean %>%
   mutate_if(is.numeric, ~replace(., is.na(.), 0)) %>%
   mutate(fantasy_points = Rushing_YDS*0.1 + Rushing_TD*6 + 
            Receiving_REC + Receiving_YDS*0.1 + Receiving_TD*6 + 
            Passing_YDS*0.04 + Passing_TD*4 - Passing_INT*2)
-
-fantasy %>%  
-  group_by(Name, Opponent_Opponent, fantasy_points) %>%
-  summarize()
 
 fantasy %>% 
   filter(Opponent_Opponent %in% c('ULM','Notre Dame', 'Texas', 'Oklahoma State')) %>%
@@ -148,8 +150,8 @@ fantasy %>%
   coord_flip() +
   facet_grid(rows = vars(Opponent_Opponent), scales = "free_y", switch = "y", space = "free_y") +
   labs(
-    title = "Fantasy Football points for ISU",
-    subtitle = "2019 Football Season",
+    title = "Fantasy Football Points for ISU Players",
+    subtitle = "2019 Football Season (selected games)",
     y = "Fantasy Points") +
   theme_minimal(base_family = "Roboto Condensed") +
   theme(
@@ -165,6 +167,10 @@ fantasy %>%
 ```
 
 3. Which ISU player(s) made big progress over the last year? Compare the 2019 and the 2018 data here.
+
+I will be using the fantasy points discussed earlier to compare players performances in 2018 and 2019. Additionally, I will only be comparing the performance of players during conference games, since these teams are played every year. The same non-conference teams are not played every year and many non-conference teams have wildly differing skill levels. 
+
+The following player made big progress over the last year: Chase Allen, Deshaunte Jones, Charlie Kolar, Johnnie Lang, and Tarique Milton. All of these players both had an increase in the average amount of fantasy points they scored per game and totaled more fantasy points over the season. The biggest improvement was seen in Charlie Kolar, who had more than triple the total fantasy points in 2019 than he had in 2018 and over tripled his average fantasy score per game.
 
 ```{r}
 defense2018 <- read_excel('./cyclonesFootball2018.xlsx', sheet='Defensive')
@@ -190,6 +196,7 @@ fantasy %>%
   inner_join(fantasy2018 %>% select(Name, Opponent_Opponent, fantasy_points_2018), 
              by=c('Name', 'Opponent_Opponent')) %>%
   group_by(Name) %>%
-  summarize(mean.points.2018=mean(fantasy_points_2018), mean.points.2019=mean(fantasy_points))
+  summarize(mean.points.per.game.2018=mean(fantasy_points_2018), mean.points.per.game.2019=mean(fantasy_points),
+            total.points.2018=sum(fantasy_points_2018), total.points.2019=sum(fantasy_points))
 ```
 
