@@ -85,15 +85,16 @@ defClean %>% ggplot(aes(x=count)) + geom_histogram() + facet_wrap(~stat)
 
 3. Did ISU have better defense against Iowa or Notre Dame? Answer this question by creating a scatterplot with x- and y-axes being the number of solo tackles (of each player). A large number of solo tackles is an indicator of good defense.
 
-The defense played better against Notre Dame. This is because many of the data points are close to the y axis, meaning that many players only had 0 to 2 solo tackles in the Iowa game but got anywhere from 0 to 6 solo tackles in the Notre Dame game.
+The defense played better against Notre Dame. This is because there were significantly more solo tackles by defensive players than in the Iowa game. For example, Mike Rose had 5 solo tackles in the Notre Dame game and only 2 solo tackles in the Iowa game. 
 
-```{r}
-dat <- defClean %>% 
-  filter(stat=='Tackles_Solo' & Opponent_Opponent %in% c('Notre Dame', 'Iowa')) %>%
-  pivot_wider(names_from = Opponent_Opponent, values_from = count)
-
-dat %>% ggplot(aes(x=Iowa, y=`Notre Dame`)) + geom_point() +
-  ggtitle("Solo Tackles by ISU Defense: Notre Dame vs Iowa")
+```{r fig.width=8, fig.height=7}
+defClean %>%
+  filter(stat=='Tackles_Solo' & Opponent_Opponent %in% c('Iowa', 'Notre Dame')) %>%
+  ggplot(aes(x=Name, y=count)) + geom_point() +
+  theme(axis.text.x = element_text(angle=90, vjust=0.5, hjust=1)) + 
+  ggtitle('Solo Tackles in Iowa and Notre Dame Games') +
+  xlab('ISU Player') + ylab('Solo Tackles') +
+  facet_grid(rows=vars(Opponent_Opponent))
 ```
 
 Now turn our attention to the player biography.
