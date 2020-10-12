@@ -73,7 +73,6 @@ For the following questions, work on the cleaned data frames `defClean`, `offCle
 
 ```{r}
 defClean <- defClean %>% pivot_longer(Tackles_Solo:Pass_PB, names_to='stat', values_to='count')
-defClean
 ```
 
 2. Compare the distributions of the defensive statistics. What defensive skills are rare?
@@ -86,12 +85,15 @@ defClean %>% ggplot(aes(x=count)) + geom_histogram() + facet_wrap(~stat)
 
 3. Did ISU have better defense against Iowa or Notre Dame? Answer this question by creating a scatterplot with x- and y-axes being the number of solo tackles (of each player). A large number of solo tackles is an indicator of good defense.
 
+The defense played better against Notre Dame. This is because many of the data points are close to the y axis, meaning that many players only had 0 to 2 solo tackles in the Iowa game but got anywhere from 0 to 6 solo tackles in the Notre Dame game.
+
 ```{r}
 dat <- defClean %>% 
   filter(stat=='Tackles_Solo' & Opponent_Opponent %in% c('Notre Dame', 'Iowa')) %>%
   pivot_wider(names_from = Opponent_Opponent, values_from = count)
 
-dat %>% ggplot(aes(x=Iowa, y=`Notre Dame`)) + geom_point() #+ geom_smooth(method = "lm", se=FALSE)
+dat %>% ggplot(aes(x=Iowa, y=`Notre Dame`)) + geom_point() +
+  ggtitle("Solo Tackles by ISU Defense: Notre Dame vs Iowa")
 ```
 
 Now turn our attention to the player biography.
@@ -100,7 +102,9 @@ Now turn our attention to the player biography.
 
 ```{r}
 bioClean <- bioClean %>% separate(Hometown, c('City', 'State'), sep=', ')
-head(bioClean)
+bioClean %>%
+  select(City, State) %>%
+  head()
 ```
 
 5. How many players are there from each state?
@@ -170,7 +174,7 @@ fantasy %>%
 
 I will be using the fantasy points discussed earlier to compare players performances in 2018 and 2019. Additionally, I will only be comparing the performance of players during conference games, since these teams are played every year. The same non-conference teams are not played every year and many non-conference teams have wildly differing skill levels. 
 
-The following player made big progress over the last year: Chase Allen, Deshaunte Jones, Charlie Kolar, Johnnie Lang, and Tarique Milton. All of these players both had an increase in the average amount of fantasy points they scored per game and totaled more fantasy points over the season. The biggest improvement was seen in Charlie Kolar, who had more than triple the total fantasy points in 2019 than he had in 2018 and over tripled his average fantasy score per game.
+The following player made big progress over the last year: Chase Allen, Deshaunte Jones, Charlie Kolar, Johnnie Lang, and Tarique Milton. All of these players both had an increase in the average amount of fantasy points they scored per game (mean.ppg in the table below) and totaled more fantasy points over the season (total.pts in the table below). The biggest improvement was seen in Charlie Kolar, who had more than triple the total fantasy points in 2019 than he had in 2018 and over tripled his average fantasy score per game.
 
 ```{r}
 defense2018 <- read_excel('./cyclonesFootball2018.xlsx', sheet='Defensive')
@@ -196,7 +200,7 @@ fantasy %>%
   inner_join(fantasy2018 %>% select(Name, Opponent_Opponent, fantasy_points_2018), 
              by=c('Name', 'Opponent_Opponent')) %>%
   group_by(Name) %>%
-  summarize(mean.points.per.game.2018=mean(fantasy_points_2018), mean.points.per.game.2019=mean(fantasy_points),
-            total.points.2018=sum(fantasy_points_2018), total.points.2019=sum(fantasy_points))
+  summarize(mean.ppg.2018=mean(fantasy_points_2018), mean.ppg.2019=mean(fantasy_points),
+            total.pts.2018=sum(fantasy_points_2018), total.pts.2019=sum(fantasy_points))
 ```
 
